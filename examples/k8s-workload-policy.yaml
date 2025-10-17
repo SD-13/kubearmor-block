@@ -7,7 +7,7 @@ spec:
   process:
     matchPaths:
       - path: /bin/ls
-        action: Audit
+        action: Block
         message: "Auditing /bin/ls execution"
         severity: 8
       - path: /bin/hostname
