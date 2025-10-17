@@ -77,6 +77,16 @@ jobs:
           sleep 5
         working-directory: ./examples
 
+      - name: Execute ls in ubuntu pod with ksp present
+        run: |
+          # POD_NAME=$(kubectl get pod -n multiubuntu -l container=ubuntu-1 -o name)
+          PODS_OUTPUT=$(kubectl get pods -n multiubuntu -o jsonpath="{.items[*].metadata.name}")
+          POD_NAME=$(echo "$PODS_OUTPUT" | tr ' ' '\n' | grep '^ubuntu-1-deployment' | head -n 1)
+          echo "Executing 'ls' inside pod: $POD_NAME"
+          RESULT=$(kubectl exec $POD_NAME -n multiubuntu -- bash -c "ls" 2>&1 || true)
+          echo "Command result: $RESULT"
+          sleep 10
+
       - name: Execute hostname in ubuntu pod with ksp present
         run: |
           # POD_NAME=$(kubectl get pod -n multiubuntu -l container=ubuntu-1 -o name)
@@ -90,15 +100,6 @@ jobs:
           else
             echo "no Permission Denied, test failed"
           fi
-
-      - name: Execute ls in ubuntu pod with ksp present
-        run: |
-          # POD_NAME=$(kubectl get pod -n multiubuntu -l container=ubuntu-1 -o name)
-          PODS_OUTPUT=$(kubectl get pods -n multiubuntu -o jsonpath="{.items[*].metadata.name}")
-          POD_NAME=$(echo "$PODS_OUTPUT" | tr ' ' '\n' | grep '^ubuntu-1-deployment' | head -n 1)
-          echo "Executing 'ls' inside pod: $POD_NAME"
-          RESULT=$(kubectl exec $POD_NAME -n multiubuntu -- bash -c "ls" 2>&1 || true)
-          echo "Command result: $RESULT"
 
       - name: Delete KSP
         run: |
@@ -118,14 +119,13 @@ jobs:
           echo "Executing 'ls' inside pod: $POD_NAME"
           RESULT=$(kubectl exec "$POD_NAME" -n multiubuntu -- bash -c "ls" 2>&1 || true)
           echo "Command result: $RESULT"
+
       - name: Get karmor sysdump
-        if: ${{ failure() }}
         run: |
           kubectl describe pod -n kubearmor -l kubearmor-app=kubearmor
           curl -sfL http://get.kubearmor.io/ | sudo sh -s -- -b /usr/local/bin
           mkdir -p /tmp/kubearmor/ && cd /tmp/kubearmor && karmor sysdump
       - name: Archive log artifacts
-        if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
           name: kubearmor.logs
