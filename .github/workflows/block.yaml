@@ -14,7 +14,7 @@ permissions: read-all
 jobs:
   kubearmor-test:
     name: Test KubeArmor
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       RUNTIME: "containerd"
@@ -33,22 +33,34 @@ jobs:
           chmod 700 get_helm.sh
           ./get_helm.sh
 
-      - name: Install KubeArmor stable using Helm
-        timeout-minutes: 7
-        run: |
-          helm repo add kubearmor https://kubearmor.github.io/charts
-          helm repo update kubearmor
-          helm upgrade --install kubearmor-operator kubearmor/kubearmor-operator -n kubearmor --create-namespace --set autoDeploy=true
-          kubectl wait --for=condition=ready --timeout=5m -n kubearmor pod -l kubearmor-app=kubearmor-operator
-          kubectl get pods -A
-          kubectl wait -n kubearmor --timeout=5m --for=jsonpath='{.status.phase}'=Running kubearmorconfigs/kubearmor-default
+      # - name: Install KubeArmor stable using Helm
+      #   timeout-minutes: 7
+      #   run: |
+      #     helm repo add kubearmor https://kubearmor.github.io/charts
+      #     helm repo update kubearmor
+      #     helm upgrade --install kubearmor-operator kubearmor/kubearmor-operator -n kubearmor --create-namespace --set autoDeploy=true
+      #     kubectl wait --for=condition=ready --timeout=5m -n kubearmor pod -l kubearmor-app=kubearmor-operator
+      #     kubectl get pods -A
+      #     kubectl wait -n kubearmor --timeout=5m --for=jsonpath='{.status.phase}'=Running kubearmorconfigs/kubearmor-default
           
-          while [ ! "$(kubectl wait --timeout=5s --for=condition=ready pod -l kubearmor-app,kubearmor-app!=kubearmor-snitch -n kubearmor >/dev/null 2>&1; echo $?)" -eq 0 ]; do
-            kubectl rollout status --timeout=5m deployment -n kubearmor -l kubearmor-app,kubearmor-app!=kubearmor-controller -n kubearmor
-            kubectl rollout status --timeout=5m daemonset -l kubearmor-app=kubearmor -n kubearmor
-            kubectl rollout status --timeout=5m deployment -n kubearmor -l kubearmor-app=kubearmor-controller -n kubearmor
-            kubectl get pods -A
-          done  
+      #     while [ ! "$(kubectl wait --timeout=5s --for=condition=ready pod -l kubearmor-app,kubearmor-app!=kubearmor-snitch -n kubearmor >/dev/null 2>&1; echo $?)" -eq 0 ]; do
+      #       kubectl rollout status --timeout=5m deployment -n kubearmor -l kubearmor-app,kubearmor-app!=kubearmor-controller -n kubearmor
+      #       kubectl rollout status --timeout=5m daemonset -l kubearmor-app=kubearmor -n kubearmor
+      #       kubectl rollout status --timeout=5m deployment -n kubearmor -l kubearmor-app=kubearmor-controller -n kubearmor
+      #       kubectl get pods -A
+      #     done  
+
+
+      - name: Install agents
+        run: |
+          helm upgrade --install agents oci://public.ecr.aws/k9v9d5v2/kspm-runtime \
+          -n agents --create-namespace \
+          --set global.agents.enabled=true \
+          --set global.agents.joinToken="${{ secrets.JOIN_TOKEN }}" \
+          --set global.agents.url="stage.accuknox.com" \
+          --set kubearmor-operator.enabled=true \
+          --set kubearmor-operator.autoDeploy=true \
+          --version v0.1.13
       - name: Deploy multiubuntu deployment
         run: |
           kubectl apply -f multiubuntu-deployment.yaml
