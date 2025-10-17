@@ -67,6 +67,10 @@ jobs:
           kubectl rollout status --timeout=5m deployment ubuntu-1-deployment -n multiubuntu
         working-directory: ./examples
 
+      - name: wait for agents to be running
+        run: bash agents-status.sh
+        working-directory: ./examples
+
       - name: Apply KSP
         run: |
           kubectl apply -f k8s-workload-policy.yaml
