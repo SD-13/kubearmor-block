@@ -82,7 +82,7 @@ jobs:
         run: |
           POD_NAME=$(kubectl get pod -n multiubuntu -l container=ubuntu-1 -o name)
           echo "Executing 'hostname' inside pod: $POD_NAME"
-          RESULT=$(kubectl exec $POD_NAME -n multiubuntu -- sh -c "/bin/hostname" 2>&1 || true)
+          RESULT=$(kubectl exec $POD_NAME -n multiubuntu -- bash -c "hostname" 2>&1 || true)
           echo "Command result: $RESULT"
           if [[ "$RESULT" == *"Permission denied"* ]]; then
             echo "Permission Denied, test failed"
