@@ -61,14 +61,15 @@ jobs:
           --set kubearmor-operator.enabled=true \
           --set kubearmor-operator.autoDeploy=true \
           --version v0.1.13
+
+      - name: wait for agents to be running
+        run: bash agents-status.sh
+        working-directory: ./examples
+
       - name: Deploy multiubuntu deployment
         run: |
           kubectl apply -f multiubuntu-deployment.yaml
           kubectl rollout status --timeout=5m deployment ubuntu-1-deployment -n multiubuntu
-        working-directory: ./examples
-
-      - name: wait for agents to be running
-        run: bash agents-status.sh
         working-directory: ./examples
 
       - name: Apply KSP
