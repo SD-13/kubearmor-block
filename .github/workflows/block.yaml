@@ -66,6 +66,19 @@ jobs:
         run: bash agents-status.sh
         working-directory: ./examples
 
+      - name: wait for kubearmor to be running
+        run: |
+          kubectl wait --for=condition=ready --timeout=5m -n agents pod -l kubearmor-app=kubearmor-operator
+          kubectl get pods -A
+          kubectl wait -n agents --timeout=5m --for=jsonpath='{.status.phase}'=Running kubearmorconfigs/kubearmor-default
+          
+          while [ ! "$(kubectl wait --timeout=5s --for=condition=ready pod -l kubearmor-app,kubearmor-app!=kubearmor-snitch -n agents >/dev/null 2>&1; echo $?)" -eq 0 ]; do
+            kubectl rollout status --timeout=5m deployment -n agents -l kubearmor-app,kubearmor-app!=kubearmor-controller -n agents
+            kubectl rollout status --timeout=5m daemonset -l kubearmor-app=kubearmor -n agents
+            kubectl rollout status --timeout=5m deployment -n agents -l kubearmor-app=kubearmor-controller -n agents
+            kubectl get pods -A
+          done
+
       - name: Deploy multiubuntu deployment
         run: |
           kubectl apply -f multiubuntu-deployment.yaml
