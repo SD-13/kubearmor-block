@@ -14,7 +14,7 @@ permissions: read-all
 jobs:
   kubearmor-test:
     name: Test KubeArmor
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
     env:
       RUNTIME: "containerd"
