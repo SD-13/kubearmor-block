@@ -60,7 +60,17 @@ jobs:
           --set global.agents.url="stage.accuknox.com" \
           --set kubearmor-operator.enabled=true \
           --set kubearmor-operator.autoDeploy=true \
-          --version v0.1.8
+          --set global.enableJobsUrl=true \
+          --set global.kiem.enabled=true \
+          --set global.riskassessment.enabled=true \
+          --set global.cis.enabled=true \
+          --set global.tenantId="5" \
+          --set global.authToken="" \
+          --set global.clusterName="2025-12-02" \
+          --set global.cronTab="54 17 * * *" \
+          --set global.label="KIEM" \
+          --set global.inClusterScan.enabled=true \
+          --version v0.1.24
 
       - name: wait for agents to be running
         run: bash agents-status.sh
