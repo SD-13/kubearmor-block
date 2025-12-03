@@ -89,6 +89,10 @@ jobs:
             kubectl get pods -A
           done
 
+      - name: Update cron time
+        run: bash update-cron-time.sh
+        working-directory: ./examples
+
       - name: Deploy multiubuntu deployment
         run: |
           kubectl apply -f multiubuntu-deployment.yaml
