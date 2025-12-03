@@ -72,9 +72,9 @@ jobs:
           --set global.inClusterScan.enabled=true \
           --version v0.1.24
 
-      - name: wait for agents to be running
-        run: bash agents-status.sh
-        working-directory: ./examples
+      # - name: wait for agents to be running
+      #   run: bash agents-status.sh
+      #   working-directory: ./examples
 
       - name: wait for kubearmor to be running
         run: |
